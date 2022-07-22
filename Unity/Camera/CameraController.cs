@@ -17,20 +17,29 @@ public class CameraController : MonoBehaviour
     GameObject _player; 
 
     void Start()
-    { }
+    {
+        
+    }
 
     void LateUpdate()
     {
         if (_mode == Define.CameraMode.QuarterView)
         {
-            // 카메라의 position은 플레이어의 position에 델타값을 더한 값
-            transform.position = _player.transform.position + _delta;
-
-            transform.LookAt(_player.transform);
+            RaycastHit hit;
+            if (Physics.Raycast(_player.transform.position, _delta, out hit, _delta.magnitude, LayerMask.GetMask("Wall")))
+            {
+                float dist = (hit.point - _player.transform.position).magnitude * 0.8f;
+                transform.position = _player.transform.position + _delta.normalized * dist;
+            }
+            else
+            {
+                // 카메라의 position은 플레이어의 position에 델타값을 더한 값
+                transform.position = _player.transform.position + _delta;
+                transform.LookAt(_player.transform);
+            }
         }
     }
-		
-		// 외부에서 쿼터뷰를 세팅할 수 있도록 하는 함수
+
     public void SetQuarterView(Vector3 delta)
     {
         _mode = Define.CameraMode.QuarterView;
