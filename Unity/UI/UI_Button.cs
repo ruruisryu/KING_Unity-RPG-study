@@ -1,47 +1,55 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class UI_Base : MonoBehaviour
+public class UI_Button : UI_Popup
 {
-    Dictionary<Type, UnityEngine.Object[]> _objects = new Dictionary<Type, UnityEngine.Object[]>();
-
-    protected void Bind<T>(Type type) where T : UnityEngine.Object
+    enum Buttons
     {
-        string[] names = Enum.GetNames(type);
-
-        UnityEngine.Object[] objects = new UnityEngine.Object[names.Length];
-        _objects.Add(typeof(T), objects);
-
-        for (int i = 0; i < names.Length; i++)
-        {
-            if (typeof(T) == typeof(GameObject))
-                objects[i] = Util.FindChild(gameObject, names[i], true);
-            else
-                objects[i] = Util.FindChild<T>(gameObject, names[i], true);
-        }
+        PointButton
     }
 
-    protected T Get<T>(int index) where T : UnityEngine.Object
+    enum Texts
     {
-        UnityEngine.Object[] objects = null;
-        if (_objects.TryGetValue(typeof(T), out objects) == false)
-            return null;
+        PointText,
+        ScoreText
+    }
 
-        // T로 캐스팅
-        return objects[index] as T;
+    enum GameObjects
+    {
+        TestObject,
+    }
+
+    enum Images
+    {
+        ItemIcon,
+    }
+
+    private void Start()
+    {
+        Init();
+    }
+
+    public override void Init()
+    {
+        base.Init();
+
+        Bind<Button>(typeof(Buttons));
+        Bind<Text>(typeof(Texts));
+        Bind<GameObject>(typeof(GameObjects));
+        Bind<Image>(typeof(Images));
+
+        GameObject go = GetImage((int)Images.ItemIcon).gameObject;
+        AddUIEvent(go, (PointerEventData data) => { go.transform.position = data.position; }, Define.UIEvent.Drag);
+
+        GetButton((int)Buttons.PointButton).gameObject.AddUIEvent(OnButtonClicked);
     }
 
     int _score = 0;
 
-    public void OnButtonClicked()
+    public void OnButtonClicked(PointerEventData data)
     {
         _score++;
+        GetText((int)Texts.ScoreText).text = $"점수: {_score}";
     }
-
-    protected Text GetText(int index) { return Get<Text>(index); }
-    protected Button GetButton(int index) { return Get<Button>(index); }
-    protected Image GetImage(int index) { return Get<Image>(index); }
 }
